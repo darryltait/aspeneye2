@@ -29,6 +29,11 @@
 </div><!-- #page -->
 
 <?php wp_footer(); ?>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Bootstrap is working');
+  });
+</script>
 
 </body>
 </html>

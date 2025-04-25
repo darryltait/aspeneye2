@@ -47,11 +47,9 @@ function aspen_eye_setup() {
 	add_theme_support( 'post-thumbnails' );
 
 	// This theme uses wp_nav_menu() in one location.
-	register_nav_menus(
-		array(
-			'menu-1' => esc_html__( 'Primary', 'aspen-eye' ),
-		)
-	);
+//register_nav_menus( array(
+//    'primary' => __( 'Primary Menu', 'aspen-eye' ),
+//) );
 
 	/*
 		* Switch default core markup for search form, comment form, and comments
@@ -134,20 +132,32 @@ function aspen_eye_widgets_init() {
 }
 add_action( 'widgets_init', 'aspen_eye_widgets_init' );
 
+function mytheme_enqueue_scripts() {
+    // Bootstrap CSS
+    wp_enqueue_style('bootstrap-css', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css');
+
+    // Theme CSS
+    wp_enqueue_style('mytheme-style', get_stylesheet_uri());
+
+    // Bootstrap JS with Popper
+    wp_enqueue_script('bootstrap-js', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js', array(), null, true);
+}
+add_action('wp_enqueue_scripts', 'mytheme_enqueue_scripts');
+
 /**
  * Enqueue scripts and styles.
  */
-function aspen_eye_scripts() {
-	wp_enqueue_style( 'aspen-eye-style', get_stylesheet_uri(), array(), _S_VERSION );
-	wp_style_add_data( 'aspen-eye-style', 'rtl', 'replace' );
-
-	wp_enqueue_script( 'aspen-eye-navigation', get_template_directory_uri() . '/js/navigation.js', array(), _S_VERSION, true );
-
-	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
-		wp_enqueue_script( 'comment-reply' );
-	}
-}
-add_action( 'wp_enqueue_scripts', 'aspen_eye_scripts' );
+//function aspen_eye_scripts() {
+//	wp_enqueue_style( 'aspen-eye-style', get_stylesheet_uri(), array(), _S_VERSION );
+//	wp_style_add_data( 'aspen-eye-style', 'rtl', 'replace' );
+//
+//	wp_enqueue_script( 'aspen-eye-navigation', get_template_directory_uri() . '/js/navigation.js', array(), _S_VERSION, true );
+//
+//	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
+//		wp_enqueue_script( 'comment-reply' );
+//	}
+//}
+//add_action( 'wp_enqueue_scripts', 'aspen_eye_scripts' );
 
 /**
  * Implement the Custom Header feature.
@@ -176,3 +186,39 @@ if ( defined( 'JETPACK__VERSION' ) ) {
 	require get_template_directory() . '/inc/jetpack.php';
 }
 
+
+
+
+// Register Navigation Menu
+function aes_register_menus() {
+    register_nav_menus(array(
+        'primary' => __('Primary Menu', 'aspen-eye')
+    ));
+}
+add_action('init', 'aes_register_menus');
+
+// Register custom nav walker for Bootstrap
+function register_navwalker() {
+    require_once get_template_directory() . '/class-wp-bootstrap-navwalker.php';
+}
+add_action( 'after_setup_theme', 'register_navwalker' );
+
+// Fix for Bootstrap 5 dropdowns using Bootstrap 4 navwalker
+add_filter( 'nav_menu_link_attributes', 'prefix_bs5_dropdown_data_attribute', 20, 3 );
+/**
+ * Use namespaced data attribute for Bootstrap's dropdown toggles.
+ *
+ * @param array    $atts HTML attributes applied to the item's `<a>` element.
+ * @param WP_Post  $item The current menu item.
+ * @param stdClass $args An object of wp_nav_menu() arguments.
+ * @return array
+ */
+function prefix_bs5_dropdown_data_attribute( $atts, $item, $args ) {
+    if ( is_a( $args->walker, 'WP_Bootstrap_Navwalker' ) ) {
+        if ( array_key_exists( 'data-toggle', $atts ) ) {
+            unset( $atts['data-toggle'] );
+            $atts['data-bs-toggle'] = 'dropdown';
+        }
+    }
+    return $atts;
+}
